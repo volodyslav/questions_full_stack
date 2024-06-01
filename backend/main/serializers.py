@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from .models import Topic
+
 
 class UserSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True, required=True)
@@ -21,3 +23,9 @@ class UserSerializer(serializers.ModelSerializer):
         validated_data.pop("password2")
         user = User.objects.create_user(**validated_data)
         return user
+
+class TopicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Topic
+        fields = "__all__"
+        

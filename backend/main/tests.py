@@ -1,10 +1,34 @@
 from django.test import TestCase
-from .serializers import UserSerializer
+from .serializers import UserSerializer, TopicSerializer
 from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
+from .models import Topic
 
-# Create your tests here.
+
+class TopicSerializerTestCase(TestCase):
+    """Testing topic"""
+    def setUp(self):
+        self.topic_1 = {
+            "title": "Programming",
+            "text": "Cool thing"
+        }
+        
+    def test_topic_is_valid(self):
+        serializer = TopicSerializer(data=self.topic_1)
+        self.assertTrue(serializer.is_valid())
+    
+    def test_topic_is_valid_without_text(self):
+        self.topic_1["text"] = ""
+        serializer = TopicSerializer(data=self.topic_1)
+        self.assertTrue(serializer.is_valid())    
+    
+    def test_topic_is_not_valid(self):
+        self.topic_1["title"] = ""
+        serializer = TopicSerializer(data=self.topic_1)
+        self.assertFalse(serializer.is_valid())
+
 class UserSerializerTestCase(TestCase):
+    """User registration testing"""
     def setUp(self):
         self.user_data = {
             "username": "admin",

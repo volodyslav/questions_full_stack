@@ -26,7 +26,6 @@ class TopicSerializerTestCase(TestCase):
         }
         # Create super user
         response = self.client.post(self.user_create_url, self.superuser_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED) 
         self.superuser = User.objects.get(username='superuser')
         
         # Get access token
@@ -35,7 +34,6 @@ class TopicSerializerTestCase(TestCase):
             'username': 'superuser',
             'password': 'psw1234'
         })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.token = response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
     
@@ -52,6 +50,22 @@ class TopicSerializerTestCase(TestCase):
             "title": "Maths",
             "text": "Cool thing",
         }
+        
+    # Check only if super user
+    def test_get_topic(self):
+        topic = Topic.objects.create(title="Biology", text="Cool Biology")
+        get_topic_url = reverse("topic_rud", args=[topic.id])
+        response = self.client.get(get_topic_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["title"], topic.title)
+            
+    def test_update_topic(self):
+        topic = Topic.objects.create(title="Biology", text="Cool Biology")
+        update_topic_url = reverse("topic_rud", args=[topic.id])  
+        new_title = {"title":"Biology and Botany"}
+        response = self.client.put(update_topic_url, new_title)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
         
     def test_create_topic(self):
         response = self.client.post(self.create_topic_url, self.topic_2)

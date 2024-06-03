@@ -8,7 +8,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ["id", "username", "password", "password2"]
+        fields = ["id", "username", "password", "password2", "is_superuser", "is_staff"]
         extra_kwargs = {
             "password": {"write_only": True},
             "password2": {"write_only": True}
@@ -20,8 +20,13 @@ class UserSerializer(serializers.ModelSerializer):
         return data   
 
     def create(self, validated_data):
-        validated_data.pop("password2")
-        user = User.objects.create_user(**validated_data)
+        password = validated_data.pop('password')
+        password2 = validated_data.pop('password2')
+        if password != password2:
+            raise serializers.ValidationError({"password": "Passwords must match."})
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
         return user
 
 class TopicSerializer(serializers.ModelSerializer):

@@ -102,6 +102,23 @@ class TopicSerializerTestCase(TestCase):
         response = self.client.post(self.create_topic_url, self.topic_1, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
+        # Get all topics
+        response = self.client.get(self.get_topic_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # RUD for non-superuser
+        topic = Topic.objects.create(title="Maths", text="Cool")
+        topic_rud = reverse("topic_rud", args=[topic.id])
+        
+        get_topic = self.client.get(topic_rud) 
+        self.assertEqual(get_topic.status_code, status.HTTP_403_FORBIDDEN)
+        
+        update_topic = self.client.put(topic_rud) 
+        self.assertEqual(update_topic.status_code, status.HTTP_403_FORBIDDEN)
+        
+        delete_topic = self.client.delete(topic_rud) 
+        self.assertEqual(delete_topic.status_code, status.HTTP_403_FORBIDDEN)
+        
         
     def test_topic_is_valid(self):
         serializer = TopicSerializer(data=self.topic_1)
@@ -116,6 +133,7 @@ class TopicSerializerTestCase(TestCase):
         self.topic_1["title"] = ""
         serializer = TopicSerializer(data=self.topic_1)
         self.assertFalse(serializer.is_valid())
+
 
 class UserSerializerTestCase(TestCase):
     """User registration testing"""

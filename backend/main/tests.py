@@ -65,7 +65,13 @@ class TopicSerializerTestCase(TestCase):
         new_title = {"title":"Biology and Botany"}
         response = self.client.put(update_topic_url, new_title)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
+    def test_delete_topic(self):
+        topic = Topic.objects.create(title="Maths", text="Fun thing")
+        update_topic_url = reverse("topic_rud", args=[topic.id])  
+        response = self.client.delete(update_topic_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Topic.objects.count(), 0)
         
     def test_create_topic(self):
         response = self.client.post(self.create_topic_url, self.topic_2)
@@ -75,6 +81,27 @@ class TopicSerializerTestCase(TestCase):
     def test_get_topics(self):
         response = self.client.get(self.get_topic_url, self.topic_1)  
         self.assertEqual(response.status_code, status.HTTP_200_OK)  
+    
+    def test_not_superuser(self):
+        self.client.logout()
+        
+        not_superuser = {
+            "username": "user",
+            "password": "psw",
+            "password2": "psw"
+        }
+        self.client.post(self.user_create_url, not_superuser)
+        self.client.login(username="user", password="psw")
+        response = self.client.post(self.token_url, {
+            'username': 'user',
+            'password': 'psw'
+        })
+        
+        user_token = response.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + user_token)
+        response = self.client.post(self.create_topic_url, self.topic_1, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
         
     def test_topic_is_valid(self):
         serializer = TopicSerializer(data=self.topic_1)
